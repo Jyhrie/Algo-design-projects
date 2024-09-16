@@ -154,10 +154,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Project.cpp" />
+    <ClInclude Include="Project.h" />
+    <ClInclude Include="ProjectNew.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Project.h" />
+    <ClCompile Include="Project.cpp" />
+    <ClCompile Include="ProjectNew.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
