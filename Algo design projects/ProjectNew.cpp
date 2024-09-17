@@ -5,12 +5,26 @@
 #include <iostream>
 #include <tuple>
 #include <vector>
+#include <ctime>
 
 using namespace std;
 
+/********************************************************** SUB FUNCTIONS **************************************************************/
+void insertionSort(vector<int>& arr, int start, int end);                                       //insertion sort function           
+void merge(vector<int>& arr, int left, int mid, int right);                                     //merge function for merge sort
+void mergeSort(vector<int>& arr, int left, int right);                                          //merge sort function                         
+void hybridSort(vector<int>& arr, int left, int right, int thresh);                             //hybrid sort function
+void printVector(vector<int>& arr);                                                             //print vector function
+vector<int> generate(int n, int seed);                                                          //generate random values                          
+bool isSorted(const std::vector<int>& arr);                                                     //check if array is sorted                   
+tuple<int,int, int, int> compare(int n, int thresh, int test, int enable, int seed);            //compare function for merge and hybrid sort            
+void writecsv(const std::vector<int>& vec, const std::string& filename);                        //write to csv function
+
+/********************************************************** GLOBAL VARIABLE **************************************************************/
 int keyComparison = 0;
 
 
+/********************************************************** INSERTION SORT **************************************************************/
 /* Function to sort array using insertion sort */
 void insertionSort(vector<int>& arr, int start, int end) //algo sorts array arr using insertionsort from index start to end 
 {
@@ -24,94 +38,71 @@ void insertionSort(vector<int>& arr, int start, int end) //algo sorts array arr 
                 arr[j-1] = arr[j];
                 arr[j] = temp;
             }
-            else //correct position was found, break out of loop
-            {
-                break;
-            }
+            else break;     //correct position was found, break out of loop
         }
     }
 }
 
-void merge(vector<int>& arr, int left, 
-           int mid, int right)
+/********************************************************** MERGE SORT **************************************************************/
+// Function to merge the two half into a sorted data
+void mergeSort(vector<int>& arr, int left, int right)
+{
+    if (left >= right) return;
+
+    int mid = left + (right - left) / 2;
+
+    mergeSort(arr, left, mid);          // Sort left half
+    mergeSort(arr, mid + 1, right);     // Sort right half
+    merge(arr, left, mid, right);       // Merge the sorted halves
+}
+
+void merge(vector<int>& arr, int left, int mid, int right)
 {
     int n1 = mid - left + 1;
     int n2 = right - mid;
 
     // Create temp vectors
-    vector<int> L(n1), R(n2);
+    vector<int> L(arr.begin() + left, arr.begin() + mid + 1);
+    vector<int> R(arr.begin() + mid + 1, arr.begin() + right + 1);
 
-    // Copy data to temp vectors L[] and R[]
-    for (int i = 0; i < n1; i++)
-        L[i] = arr[left + i];
-    for (int j = 0; j < n2; j++)
-        R[j] = arr[mid + 1 + j];
+    int i = 0, j = 0, k = left;
 
-    int i = 0, j = 0;
-    int k = left;
-
-    // Merge the temp vectors back 
-    // into arr[left..right]
-    while (i < n1 && j < n2) {
+    // Merge the left and right subarrays to main array
+    while (i < n1 && j < n2) 
+    {
         keyComparison++;
-        if (L[i] <= R[j]) {
-            arr[k] = L[i];
-            i++;
-        }
-        else {
-            arr[k] = R[j];
-            j++;
-        }
-        k++;
+        if (L[i] <= R[j]) arr[k++] = L[i++];
+        else arr[k++] = R[j++];
     }
 
-    // Copy the remaining elements of L[], 
-    // if there are any
-    while (i < n1) {
-        arr[k] = L[i];
-        i++;
-        k++;
-    }
-
-    // Copy the remaining elements of R[], 
-    // if there are any
-    while (j < n2) {
-        arr[k] = R[j];
-        j++;
-        k++;
-    }
+    // Copy remaining elements (if any) from L[] or R[], 
+    while (i < n1) arr[k++] = L[i++];
+    while (j < n2) arr[k++] = R[j++];
 }
 
-// begin is for left index and end is right index
-// of the sub-array of arr to be sorted
-void mergeSort(vector<int>& arr, int left, int right)
-{
-    if (left >= right)
-        return;
 
-    int mid = left + (right - left) / 2;
-    mergeSort(arr, left, mid);
-    mergeSort(arr, mid + 1, right);
-    merge(arr, left, mid, right);
-}
 
+/********************************************************** HYBRID SORT **************************************************************/
+// Function to sort an array using hybrid sort
 void hybridSort(vector<int>& arr, int left, int right, int thresh)
 {
-    if (left >= right) //check arr length of 0.
-        return;
+    if (left >= right) return;//check arr length of 0.
     
     int mid = left + (right - left) / 2; //get mid value of array
     
-    if(right-left+1 <= thresh) {//if length of array is <= S value, use insertionsort algorithm
+    if(right-left+1 <= thresh) //if length of array is <= S value, use insertionsort algorithm
+    {
         insertionSort(arr, left, right);
     }
-    else { //use mergesort algorithm
+    else  //use mergesort algorithm
+    {
         hybridSort(arr, left, mid,thresh);
         hybridSort(arr, mid + 1, right,thresh);
         merge(arr, left, mid, right);
     }
 }
 
+/********************************************************** PRINT VECTOR FUNCTION **************************************************************/
 // Function to print a vector
 void printVector(vector<int>& arr)
 {
@@ -120,6 +111,8 @@ void printVector(vector<int>& arr)
     cout << endl;
 }
 
+/********************************************************** GENERATE RANDOM VALUE **************************************************************/
+// Function to generate random values
 vector<int> generate(int n, int seed) {
     std::vector<int> numbers;
     numbers.reserve(n);
@@ -129,63 +122,68 @@ vector<int> generate(int n, int seed) {
 
     if(seed != 0){ srand(seed); }//if seed is not 0, use set seed
     else{ srand(static_cast<unsigned>(time(0)));}
-    
+
     for (int i = 0; i < n; ++i) {
-        int randomNumber = min + (rand() % (max-min+1)); 
+        int randomNumber = min + (rand() % (max-min +1)); //range from 1000 to 10000000
         numbers.push_back(randomNumber);
     }
     
     return numbers;
 }
 
+/********************************************************** CHECK IS SORTED **************************************************************/
+// Function to check if an array is sorted
 bool isSorted(const std::vector<int>& arr) {
     for (size_t i = 1; i < arr.size(); ++i) {
         if (arr[i] < arr[i - 1]) {
-            cout << arr[i] << "<" << arr[i-1] << "\n";
+            //cout << arr[i] << "<" << arr[i-1] << "\n";
            return false;
         }
     }
     return true;
 }
 
+/********************************************************** COMPARE FUNCTION **************************************************************/
+// Function to compare merge and hybrid sort
 tuple<int,int, int, int> compare(int n, int thresh, int test, int enable, int seed)
 {
     vector<int> arr;
     vector<int> dupe;
-    switch(test)
-    {
-    case -1:
-        for(int i = n ; i >= 1;i--){
-            arr.push_back(i);
-        }
-        dupe = arr;
-        break;
-    case 0:
-        arr = generate(n, seed);
-        dupe = arr;
-        break;
-    case 1:
-        for(int i = 1; i < n+1;i++){
-            arr.push_back(i);
-        }
-        dupe = arr;
-        break;
-    }
 
     int hybridResult = 0;
     int mergeResult = 0;
 
     int mergeTime = 0;
     int hybridTime = 0;
-    
+
+    switch(test)
+    {
+        case -1:
+            for(int i = n ; i >= 1 ; i--){
+                arr.push_back(i);
+            }            
+            break;
+        case 0:
+            arr = generate(n, seed);
+            break;
+        case 1:
+            for(int i = 1; i <= n ; i++){
+                arr.push_back(i);
+            }
+            break;
+    }    
+
+    dupe = arr;
+
     if(enable == 0)
     {
         auto mergeStart = std::chrono::high_resolution_clock::now();
         mergeSort(arr, 0, n-1);
         auto mergeStop = std::chrono::high_resolution_clock::now();
         mergeTime = std::chrono::duration_cast<std::chrono::milliseconds>(mergeStop - mergeStart).count();
-        cout << "merge " << keyComparison << " time taken :" << mergeTime << " | " ;
         mergeResult = keyComparison;
+        // cout << "merge " << mergeResult << " (time taken :" << mergeTime << ") | " ;
+        
     
         keyComparison = 0; //reset keycomparison
         auto hybridStart = std::chrono::high_resolution_clock::now();
@@ -193,16 +191,18 @@ tuple<int,int, int, int> compare(int n, int thresh, int test, int enable, int se
         auto hybridStop = std::chrono::high_resolution_clock::now();
         hybridTime = std::chrono::duration_cast<std::chrono::milliseconds>(hybridStop - hybridStart).count();
         hybridResult = keyComparison;
-        cout << "hybrid " << hybridResult <<  " time taken : " << hybridTime ;
+        // cout << "hybrid " << hybridResult <<  " (time taken : " << hybridTime << ") ";
 
         if(!isSorted(arr))
         {
-            cout << "merge failed to sort \n";
+            cout << " merge failed to sort (enable = 0)\n";
         }
         if(!isSorted(dupe))
         {
-            cout << "hybrid failed to sort \n";
+            cout << " hybrid failed to sort \n";
         }
+        
+        // cout << " | Key comparison diff: " << hybridResult - mergeResult << "| Time diff: " << hybridTime - mergeTime << "\n";
     }
     else if(enable == 1)
     {
@@ -212,7 +212,7 @@ tuple<int,int, int, int> compare(int n, int thresh, int test, int enable, int se
         
         if(!isSorted(arr))
         {
-            cout << "merge failed to sort \n";
+            cout << " merge failed to sort (enable = 1)\n";
         }
     }
     else if(enable == 2)
@@ -222,22 +222,19 @@ tuple<int,int, int, int> compare(int n, int thresh, int test, int enable, int se
         auto hybridStop = std::chrono::high_resolution_clock::now();
         hybridTime = std::chrono::duration_cast<std::chrono::milliseconds>(hybridStop - hybridStart).count();
         hybridResult = keyComparison;
-        cout << "hybrid " << hybridResult << "time : " << hybridTime ;
+        cout << "hybrid " << hybridResult << " time : " << hybridTime  << " \n";
         
         if(!isSorted(dupe))
         {
-            cout << "hybrid failed to sort \n";
+            cout << " hybrid failed to sort (enable = 2)\n";
         }
     }
-
-    cout << " | diff: " << hybridResult - mergeResult <<"\n";
-    
     keyComparison = 0;
-
-
     return make_tuple(mergeResult, hybridResult, mergeTime, hybridTime);
 }
 
+/********************************************************** WRITE CSV FUNCTION **************************************************************/
+// Function to write to a csv file
 void writecsv(const std::vector<int>& vec, const std::string& filename) {
     std::ofstream file(filename);  // Open file for writing
     if (!file.is_open()) {
@@ -256,23 +253,27 @@ void writecsv(const std::vector<int>& vec, const std::string& filename) {
     file.close();  // Close the file
 }
 
+/********************************************************** MAIN FUNCTION **************************************************************/
 // Driver code
 int main()
 {
 
     vector<int> tempArr;// = generate(20);//{15,14,13,12,11,10,9,8,7,6,5,4,3,2,1};
-
     
     for(int i = 1; i < 500; i+=2)
     {
         tempArr.push_back(i);
     }
 
-    int n = 1000000;
+    int n = 1000000; //set n value
+
+    cout << "\n=================== HYBRID SORT TIMING =======================\n";
+    cout << "Calculate the time taken for hybrid sort\n";
     cout << "Best Case | ";
     compare(n, 10, 1, 2, 6);
     cout << "Worst Case | ";
     compare(n, 10, -1, 2, 6);
+    cout << "================================================================\n\n";
     
     vector<int> hybridres;
     vector<int> hybridtime;
@@ -280,9 +281,13 @@ int main()
     vector<int> mergetime;
     writecsv(tempArr, "svalues.csv");
 
+    //part c(i): fixe s value and change n value
+    cout << "========================================= PART C (i) =============================================\n";
     vector<int> nvalues;
+    int bestn = 0;
     for(int i = 50000; i <= 1000000; i+=50000)
     {
+        // cout << "n value: " << i << " | ";
         tuple<int,int, int,int>cmpres = compare(i, 12, 0, 0, 0);
         //n: data points
         //thresh: s value
@@ -296,12 +301,109 @@ int main()
         hybridtime.push_back(get<3>(cmpres));
         
         nvalues.push_back(i);
+        int keycomp = get<1>(cmpres) - get<0>(cmpres);
+
+        if (bestn == 0)
+        {
+            bestn = keycomp;
+        }
+        else if (keycomp > bestn)
+        {
+            bestn = keycomp;
+        }
     }
+    cout << "\nBest N value: " << bestn << "\n";
+    cout << "==================================================================================================\n\n";
+
+    // part c(ii): fix n value and change s value
+    cout << "========================================= PART C (ii) =============================================\n";
+    vector<int> svalues;
+    int min = 0;
+    int bests = 0;
+    for (int j = 0 ; j < 5 ; j++)
+    { 
+        for(int i = 10; i <= 55; i++) //after running for 5 times from 0 -100, we conclude the best range is within 10 to 55
+        {   
+            // cout << "s value: " << i << " | ";
+            tuple<int,int, int,int>cmpres = compare(n, i, 0, 0, 1);
+            //n: data points
+            //thresh: s value
+            //test: 0 for both merge and hybrid, 1 for only merge, 2 for only hybrid.
+            //enable: 0 to generate random values based on seed, 1 for best case, -1 for worst case
+            //seed: set the seed value so that the random values are the same for each s value (fair result)
+            mergeres.push_back(get<0>(cmpres));
+            hybridres.push_back(get<1>(cmpres));
+            mergetime.push_back(get<2>(cmpres));
+            hybridtime.push_back(get<3>(cmpres));
+            
+            svalues.push_back(i);
+            int time = get<3>(cmpres)  - get<2>(cmpres);
+
+            if (min == 0)
+            {
+                min = time;
+                bests = i;
+            }
+            else if (time < min)
+            {
+                min = time;
+                bests = i;
+            }
+        }
+    }
+    cout << "Best S value: " << bests << " | Time diff: " << min << "\n";
+    cout << "==================================================================================================\n\n";
+    // based on the output, we can see that the best range for s value is between 10 to 55. 
+    // based on the output, we also can see at certain threshold, hybrid sort is faster than merge sort.
+    // after running for 5 times the output is consistent, the best s value is 
+
+
+    // part c(iii): change n value and change s value
+    cout << "========================================= PART C (iii) =============================================\n";
+    vector<int> bestOvalues;
+    int lowest = 0;
+    int bestN = 0;
+    int bestS = 0;
+    for (int j = 100 ; j < 1000 ; j+=100)
+    { 
+        for(int i = 10; i <= 55; i++) //after running for 5 times from 0 -100, we conclude the best range is within 10 to 55
+        {   
+            // cout << "s value: " << i << " | ";
+            tuple<int,int, int,int>cmpres = compare(n, i, 0, 0, 1);
+            //n: data points
+            //thresh: s value
+            //test: 0 for both merge and hybrid, 1 for only merge, 2 for only hybrid.
+            //enable: 0 to generate random values based on seed, 1 for best case, -1 for worst case
+            //seed: set the seed value so that the random values are the same for each s value (fair result)
+            mergeres.push_back(get<0>(cmpres));
+            hybridres.push_back(get<1>(cmpres));
+            mergetime.push_back(get<2>(cmpres));
+            hybridtime.push_back(get<3>(cmpres));
+            bestOvalues.push_back(i);
+            int time = get<3>(cmpres)  - get<2>(cmpres);
+
+            if (lowest == 0)
+            {
+                lowest = time;
+                bestN = j;
+                bestS = i;
+            }
+            else if (time < lowest)
+            {
+                lowest = time;
+                bestN = j;
+                bestS = i;
+            }
+        }
+    }
+    cout << "Best N value: " << bestN << " | Best S value: " << bestS << " | Time diff: " << lowest << "\n";
+    cout << "==================================================================================================\n\n";
+
     writecsv(hybridres, "hybridres.csv");
     writecsv(hybridtime, "hybridtime.csv");
     writecsv(mergeres, "mergeres.csv");
     writecsv(mergetime, "mergetime.csv");
-    writecsv(nvalues, "nvalues.csv");
+    // writecsv(nvalues, "nvalues.csv");
 
     
     return 0;
