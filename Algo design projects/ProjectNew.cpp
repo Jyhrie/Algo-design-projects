@@ -276,23 +276,31 @@ int main()
     
     vector<int> hybridres;
     vector<int> hybridtime;
+    vector<int> mergeres;
+    vector<int> mergetime;
     writecsv(tempArr, "svalues.csv");
 
     vector<int> nvalues;
     for(int i = 50000; i <= 1000000; i+=50000)
     {
-        tuple<int,int, int,int>cmpres = compare(i, 12, 0, 0, 6);
+        tuple<int,int, int,int>cmpres = compare(i, 12, 0, 0, 0);
         //n: data points
         //thresh: s value
         //test: 0 for both merge and hybrid, 1 for only merge, 2 for only hybrid.
         //enable: 0 to generate random values based on seed, 1 for best case, -1 for worst case
-        //seed: 0 to use random seed, not 0 for fixed seed
+        //seed: 0 to use random seed per instance of compare, not 0 for fixed seed
+        
+        mergeres.push_back(get<0>(cmpres));
         hybridres.push_back(get<1>(cmpres));
+        mergetime.push_back(get<2>(cmpres));
         hybridtime.push_back(get<3>(cmpres));
+        
         nvalues.push_back(i);
     }
     writecsv(hybridres, "hybridres.csv");
     writecsv(hybridtime, "hybridtime.csv");
+    writecsv(mergeres, "mergeres.csv");
+    writecsv(mergetime, "mergetime.csv");
     writecsv(nvalues, "nvalues.csv");
 
     
