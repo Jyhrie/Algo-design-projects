@@ -6,6 +6,7 @@
 #include <tuple>
 #include <vector>
 #include <ctime>
+#include <algorithm>
 
 using namespace std;
 
@@ -280,14 +281,14 @@ int main()
     vector<int> mergeres;
     vector<int> mergetime;
     writecsv(tempArr, "svalues.csv");
-
+/*
     //part c(i): fixe s value and change n value
     cout << "========================================= PART C (i) =============================================\n";
     vector<int> nvalues;
-    int bestn = 0;
-    for(int i = 50000; i <= 1000000; i+=50000)
+    int correlation = 0;
+    for(int i = 100; i <= 100000; i+=100)
     {
-        // cout << "n value: " << i << " | ";
+        cout << "n value: " << i << " | ";
         tuple<int,int, int,int>cmpres = compare(i, 12, 0, 0, 0);
         //n: data points
         //thresh: s value
@@ -302,27 +303,24 @@ int main()
         
         nvalues.push_back(i);
         int keycomp = get<1>(cmpres) - get<0>(cmpres);
+        int time = get<3>(cmpres)  - get<2>(cmpres);
 
-        if (bestn == 0)
-        {
-            bestn = keycomp;
-        }
-        else if (keycomp > bestn)
-        {
-            bestn = keycomp;
-        }
+        cout << "key comparison diff: " << keycomp << " | Time diff: " << time << "\n";
     }
-    cout << "\nBest N value: " << bestn << "\n";
     cout << "==================================================================================================\n\n";
 
+    writecsv(hybridres, "Data Excel File/Part C(i)_hybridres.csv");
+    writecsv(hybridtime, "Data Excel File/Part C(i)_hybridtime.csv");
+    writecsv(mergeres, "Data Excel File/Part C(i)_mergeres.csv");
+    writecsv(mergetime, "Data Excel File/Part C(i)_mergetime.csv");
+    writecsv(nvalues, "Data Excel File/Part C(i)_nvalues.csv");
+*//*
     // part c(ii): fix n value and change s value
     cout << "========================================= PART C (ii) =============================================\n";
     vector<int> svalues;
-    int min = 0;
-    int bests = 0;
-    for (int j = 0 ; j < 5 ; j++)
-    { 
-        for(int i = 10; i <= 55; i++) //after running for 5 times from 0 -100, we conclude the best range is within 10 to 55
+    vector<pair<int, int>> best_s_values; // To store <S value, time difference>
+    for (int j = 0 ; j < 10 ; j++){
+        for(int i = 15; i <= 30; i++) //after running for 5 times from 0 -100, we conclude the best range is within 10 to 55
         {   
             // cout << "s value: " << i << " | ";
             tuple<int,int, int,int>cmpres = compare(n, i, 0, 0, 1);
@@ -339,33 +337,36 @@ int main()
             svalues.push_back(i);
             int time = get<3>(cmpres)  - get<2>(cmpres);
 
-            if (min == 0)
-            {
-                min = time;
-                bests = i;
-            }
-            else if (time < min)
-            {
-                min = time;
-                bests = i;
-            }
+            best_s_values.push_back(make_pair(i, time));
+  
+        //    cout << "key comparison diff: " << get<1>(cmpres) - get<0>(cmpres) << " | Time diff: " << time << "\n";
         }
+        // Sort the vector based on time difference (second value of the pair)
+        sort(best_s_values.begin(), best_s_values.end(), [](const pair<int, int>& a, const pair<int, int>& b) {
+            return a.second < b.second; // Sort by time difference (ascending)
+        });
     }
-    cout << "Best S value: " << bests << " | Time diff: " << min << "\n";
+        // Display the top 10 best S values
+        cout << "\nTop 10 best S values based on time difference:\n";
+        for (int i = 0; i < 10 && i < best_s_values.size(); ++i) {
+            cout << "S value: " << best_s_values[i].first << " | Time diff: " << best_s_values[i].second << "\n";
+        }
+            cout << "\n";
     cout << "==================================================================================================\n\n";
     // based on the output, we can see that the best range for s value is between 10 to 55. 
     // based on the output, we also can see at certain threshold, hybrid sort is faster than merge sort.
     // after running for 5 times the output is consistent, the best s value is 
 
+    writecsv(hybridres, "Data Excel File/Part C(ii)_hybridres.csv");
+    writecsv(hybridtime, "Data Excel File/Part C(ii)_hybridtime.csv");
+    writecsv(mergeres, "Data Excel File/Part C(ii)_mergeres.csv");
+    writecsv(mergetime, "Data Excel File/Part C(ii)_mergetime.csv");
+    writecsv(svalues, "Data Excel File/Part C(ii)_svalues.csv");
 
     // part c(iii): change n value and change s value
     cout << "========================================= PART C (iii) =============================================\n";
-    vector<int> bestOvalues;
-    int lowest = 0;
-    int bestN = 0;
-    int bestS = 0;
-    for (int j = 100 ; j < 1000 ; j+=100)
-    { 
+    vector<pair<int, int>> best_s_values; // To store <S value, time difference>
+    for (int j = 100 ; j < 1000 ; j+=100){ 
         for(int i = 10; i <= 55; i++) //after running for 5 times from 0 -100, we conclude the best range is within 10 to 55
         {   
             // cout << "s value: " << i << " | ";
@@ -379,33 +380,61 @@ int main()
             hybridres.push_back(get<1>(cmpres));
             mergetime.push_back(get<2>(cmpres));
             hybridtime.push_back(get<3>(cmpres));
-            bestOvalues.push_back(i);
+            bestOpNvalues.push_back(i);
+            bestOpSvalues.push_back(j);
             int time = get<3>(cmpres)  - get<2>(cmpres);
 
-            if (lowest == 0)
-            {
-                lowest = time;
-                bestN = j;
-                bestS = i;
-            }
-            else if (time < lowest)
-            {
-                lowest = time;
-                bestN = j;
-                bestS = i;
-            }
+            best_s_values.push_back(make_pair(i, time));
+            
+        });
         }
+        sort(best_s_values.begin(), best_s_values.end(), [](const pair<int, int>& a, const pair<int, int>& b) {
+            return a.second < b.second; // Sort by time difference (ascending) });
     }
-    cout << "Best N value: " << bestN << " | Best S value: " << bestS << " | Time diff: " << lowest << "\n";
+    cout << "Top 10 best S values based on time difference:\n";
+    for (int i = 0; i < 10 && i < best_s_values.size(); ++i) {
+        cout << "S value: " << best_s_values[i].first << " | Time diff: " << best_s_values[i].second << "\n\n";
+    }
     cout << "==================================================================================================\n\n";
 
-    writecsv(hybridres, "hybridres.csv");
-    writecsv(hybridtime, "hybridtime.csv");
-    writecsv(mergeres, "mergeres.csv");
-    writecsv(mergetime, "mergetime.csv");
-    // writecsv(nvalues, "nvalues.csv");
+    writecsv(hybridres, "Data Excel File/Part C(iii)_hybridres.csv");
+    writecsv(hybridtime, "Data Excel File/Part C(iii)_hybridtime.csv");
+    writecsv(mergeres, "Data Excel File/Part C(iii)_mergeres.csv");
+    writecsv(mergetime, "Data Excel File/Part C(iii)_mergetime.csv");
+    writecsv(bestOpNvalues, "Data Excel File/Part C(iii)_bestOpNvalues.csv");
+    writecsv(bestOpSvalues, "Data Excel File/Part C(iii)_bestOpSvalues.csv");
+*/
+    // part d: compare merge and hybrid sort with 10 million data points
+    cout << "========================================= PART D =============================================\n";
+    vector<int> d_nvalues;
+    for (int i = 15; i <= 40; i++)
+        {
+        cout << "s value: " << i << " | ";
+        tuple<int,int, int,int>cmpres = compare(n, i, 0, 0, 1);
+        //n: data points
+        //thresh: s value
+        //test: 0 for both merge and hybrid, 1 for only merge, 2 for only hybrid.
+        //enable: 0 to generate random values based on seed, 1 for best case, -1 for worst case
+        //seed: 0 to use random seed per instance of compare, not 0 for fixed seed
+            
+        mergeres.push_back(get<0>(cmpres));
+        hybridres.push_back(get<1>(cmpres));
+        mergetime.push_back(get<2>(cmpres));
+        hybridtime.push_back(get<3>(cmpres));
+            
+        d_nvalues.push_back(i);
+        int keycomp = get<1>(cmpres) - get<0>(cmpres);
+        int time = get<3>(cmpres)  - get<2>(cmpres);
+        cout << "key comparison diff: " << keycomp << " | Time diff: " << time << "\n";
+    }
+    cout << "==================================================================================================\n\n";
 
-    
+    writecsv(hybridres, "Data Excel File/Part D_hybridres.csv");
+    writecsv(hybridtime, "Data Excel File/Part D_hybridtime.csv");
+    writecsv(mergeres, "Data Excel File/Part D_mergeres.csv");
+    writecsv(mergetime, "Data Excel File/Part D_mergetime.csv");
+    writecsv(d_nvalues, "Data Excel File/Part D_nvalues.csv");
+
     return 0;
 }
 
